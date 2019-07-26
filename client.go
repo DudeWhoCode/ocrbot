@@ -17,7 +17,7 @@ var (
 	APISECRET    = os.Getenv("APISECRET")
 	ACCESSTOKEN  = os.Getenv("ACCESSTOKEN")
 	ACCESSSECRET = os.Getenv("ACCESSSECRET")
-	WEBHOOKENV   = "dev3"
+	WEBHOOKENV   = "dev4"
 	APPURL       = "https://ocrbot.dudewho.codes"
 )
 
