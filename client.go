@@ -18,7 +18,7 @@ var (
 	ACCESSTOKEN  = os.Getenv("ACCESSTOKEN")
 	ACCESSSECRET = os.Getenv("ACCESSSECRET")
 	WEBHOOKENV   = "dev3"
-	APPURL       = "https://dfde80a7.ngrok.io"
+	APPURL       = "https://ocrbot.dudewho.codes"
 )
 
 var api *anaconda.TwitterApi
