@@ -28,8 +28,8 @@ func startServer() {
 	}
 	server.Addr = "0.0.0.0:8000"
 	fmt.Println("Starting server...")
-	go server.ListenAndServe()
-	registerWebhook()
+	server.ListenAndServe()
+	// registerWebhook()
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
