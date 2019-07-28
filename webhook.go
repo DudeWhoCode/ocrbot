@@ -57,6 +57,9 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(parentTweet.Entities.Media) == 0 {
+		return
+	}
 	media := parentTweet.Entities.Media[0]
 	if media.Type != "photo" {
 		return
