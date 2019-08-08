@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,47 +13,21 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
+const (
+	WEBHOOKENV = "dev4"
+	APPURL     = "https://ocrbot.dudewho.codes"
+)
+
 var (
-	APIKEY       = os.Getenv("APIKEY")
-	APISECRET    = os.Getenv("APISECRET")
-	ACCESSTOKEN  = os.Getenv("ACCESSTOKEN")
-	ACCESSSECRET = os.Getenv("ACCESSSECRET")
-	WEBHOOKENV   = "dev4"
-	APPURL       = "https://ocrbot.dudewho.codes"
+	APIKEY               = os.Getenv("APIKEY")
+	APISECRET            = os.Getenv("APISECRET")
+	ACCESSTOKEN          = os.Getenv("ACCESSTOKEN")
+	ACCESSSECRET         = os.Getenv("ACCESSSECRET")
+	webhookEndpoint      = "https://api.twitter.com/1.1/account_activity/all/%s/webhooks.json"
+	subscriptionEndpoint = "https://api.twitter.com/1.1/account_activity/all/%s/subscriptions.json"
 )
 
 var api *anaconda.TwitterApi
-
-type WebhookLoad struct {
-	UserId           string  `json:"for_user_id"`
-	TweetCreateEvent []Tweet `json:"tweet_create_events"`
-}
-
-type Tweet struct {
-	Id       int64
-	IdStr    string `json:"id_str"`
-	User     User
-	Text     string
-	ParentID int64  `json:"in_reply_to_status_id"`
-	Entities Entity `json:"entities"`
-}
-
-type Entity struct {
-	Media []Media `json:"media"`
-}
-
-type Media struct {
-	ID   int64  `json:"id"`
-	URL  string `json:"media_url_https"`
-	Type string `json:"type"`
-}
-
-type User struct {
-	Id     int64
-	IdStr  string `json:"id_str"`
-	Name   string
-	Handle string `json:"screen_name"`
-}
 
 func init() {
 	anaconda.SetConsumerKey(APIKEY)
@@ -71,13 +46,13 @@ func createClient() *http.Client {
 	return config.Client(oauth1.NoContext, token)
 }
 
-func registerWebhook() {
-	fmt.Println("register webhook")
+func registerWebhook(envName, webhookPath string) {
+	fmt.Println("Into register webhook")
 	httpClient := createClient()
 
-	path := "https://api.twitter.com/1.1/account_activity/all/" + WEBHOOKENV + "/webhooks.json"
+	path := fmt.Sprintf(webhookEndpoint, envName)
 	values := url.Values{}
-	values.Set("url", APPURL+"/webhook/twitter")
+	values.Set("url", webhookPath)
 
 	resp, err := httpClient.PostForm(path, values)
 	if err != nil {
@@ -87,23 +62,22 @@ func registerWebhook() {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(body), &data); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println("registerWebHook data: ", data)
-	fmt.Println("Webhook id of " + data["id"].(string) + " has been registered")
-	fmt.Println("Before calling subscribeWebhook")
-	subscribeWebhook()
+	log.Println("registerWebHook data: ", data)
+	log.Println("Webhook id of " + data["id"].(string) + " has been registered")
+	subscribeWebhook(envName)
 }
 
-func subscribeWebhook() {
+func subscribeWebhook(envName string) {
 	fmt.Println("Into subscribe webhook")
 	client := createClient()
-	path := "https://api.twitter.com/1.1/account_activity/all/" + WEBHOOKENV + "/subscriptions.json"
+	path := fmt.Sprintf(subscriptionEndpoint, envName)
 	resp, err := client.PostForm(path, nil)
 	if err != nil {
 		panic(err)
