@@ -20,7 +20,10 @@ func startServer() {
 	fmt.Println("Into start server")
 	m := mux.NewRouter()
 	m.HandleFunc("/webhook/twitter", crcCheck).Methods("GET")
+	m.HandleFunc("/webhookdev/twitter", crcCheck).Methods("GET") // Dev environment
 	m.HandleFunc("/webhook/twitter", webhookHandler).Methods("POST")
+	m.HandleFunc("/webhookdev/twitter", webhookHandler).Methods("POST") // Dev environment
+	m.HandleFunc("/register-webhook", registerNewWebhook).Methods("POST")
 	m.HandleFunc("/ping", ping).Methods("GET")
 
 	server := &http.Server{
@@ -35,7 +38,7 @@ func startServer() {
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Into webhook handler")
 	body, _ := ioutil.ReadAll(r.Body)
-	var load WebhookLoad
+	var load Webhook
 	err := json.Unmarshal(body, &load)
 	if err != nil {
 		fmt.Println("unmarshal json: ", err)
@@ -102,6 +105,14 @@ func crcCheck(w http.ResponseWriter, r *http.Request) {
 
 func ping(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "pong")
+}
+
+func registerNewWebhook(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Into registerNewWebhook")
+	var payload RegisterWebHook
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&payload)
+	registerWebhook(payload.EnvName, payload.AppURL+payload.WebhookPath)
 }
 
 func downloadImage(url, path string) error {
