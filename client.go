@@ -11,6 +11,7 @@ import (
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/dghubble/oauth1"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -30,9 +31,15 @@ func init() {
 	api = anaconda.NewTwitterApi(accessToken, accessSecret)
 }
 
-func postTweet(tweet string) {
+func replyTweet(tweet string, replyID string) error {
 	v := url.Values{}
-	api.PostTweet(tweet, v)
+	v.Set("in_reply_to_status_id", replyID)
+	_, err := api.PostTweet(tweet, v)
+	if err != nil {
+		return errors.Wrap(err, "reply tweet failed")
+	}
+
+	return nil
 }
 
 func createClient() *http.Client {
