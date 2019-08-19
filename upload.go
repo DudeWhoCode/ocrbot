@@ -2,44 +2,37 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
-	APIDEVKEY = os.Getenv("APIDEVKEY")
-	USERKEY   = os.Getenv("USERKEY")
-	PASTEURL  = "https://pastebin.com/api/api_post.php"
+	apiDevKey   = os.Getenv("APIDEVKEY")
+	userKey     = os.Getenv("USERKEY")
+	pasteBinURL = "https://pastebin.com/api/api_post.php"
 )
 
-type pastePayload struct {
-	APIDevKey       string `json:"api_dev_key"`
-	APIUserKey      string `json:"api_user_key"`
-	APIOption       string `json:"api_option"`
-	APIPasteCode    string `json:"api_paste_code"`
-	APIPasteName    string `json:"api_paste_name"`
-	APIPastePrivate string `json:"api_paste_private"`
-	APIPasteFormat  string `json:"api_paste_format"`
-}
-
-func createPaste(text string) string {
+// createPaste uploads the text to pastebin account and returns URL of the paste
+func createPaste(text string) (string, error) {
 	v := url.Values{}
-	v.Add("api_dev_key", APIDEVKEY)
-	v.Add("api_user_key", USERKEY)
+	v.Add("api_dev_key", apiDevKey)
+	v.Add("api_user_key", userKey)
 	v.Add("api_option", "paste")
 	v.Add("api_paste_code", text)
+
 	buf := strings.NewReader(v.Encode())
-	// json.NewEncoder(buf).Encode(body)
-	resp, err := http.Post(PASTEURL, "application/x-www-form-urlencoded", buf)
+	resp, err := http.Post(pasteBinURL, "application/x-www-form-urlencoded", buf)
 	if err != nil {
-		log.Println("paste url: ", err)
+		return "", errors.Wrap(err, "pastebin upload failed")
 	}
-	respBody, err := ioutil.ReadAll(resp.Body)
+
+	pasteURL, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("read body: ", err)
+		return "", errors.Wrap(err, "read failed")
 	}
-	return string(respBody)
+	return string(pasteURL), nil
 }
