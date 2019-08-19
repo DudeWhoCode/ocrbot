@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const (
+var (
 	APIDEVKEY = os.Getenv("APIDEVKEY")
 	USERKEY   = os.Getenv("USERKEY")
 	PASTEURL  = "https://pastebin.com/api/api_post.php"
