@@ -47,7 +47,8 @@ func createClient() *http.Client {
 	return config.Client(oauth1.NoContext, token)
 }
 
-func registerWebhook(envName, webhookPath string) {
+// registerWebhook registers the webhook path to twitter environment and returns respective webhookID
+func registerWebhook(envName, webhookPath string) (string, error) {
 	httpClient := createClient()
 	path := fmt.Sprintf(webhookEndpoint, envName)
 	values := url.Values{}
@@ -56,25 +57,26 @@ func registerWebhook(envName, webhookPath string) {
 	// TODO: Check whether you can achieve the same using anaconda
 	resp, err := httpClient.PostForm(path, values)
 	if err != nil {
-		panic(err)
+		return "", errors.Wrap(err, "register webhook POST failed")
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.Wrap(err, "read failed")
 	}
 
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(body), &data); err != nil {
-		log.Fatal(err)
+		return "", errors.Wrap(err, "json unmarshall failed")
 	}
 	log.Infof("Registered Webhook: %s", data)
 	webhookID, err := subscribeWebhook(envName)
 	if err != nil {
-		log.Errorf("Unable to subscribe to webhook.\n %s", err)
+		return "", errors.Wrap(err, "subscribe webhook failed")
 	}
-	log.Infof("subscribed to webhook: %s", webhookID)
+
+	return webhookID, nil
 }
 
 func subscribeWebhook(envName string) (string, error) {

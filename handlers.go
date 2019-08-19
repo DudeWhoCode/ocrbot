@@ -127,5 +127,9 @@ func registerNewWebhook(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterWebHook
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&payload)
-	registerWebhook(payload.EnvName, payload.AppURL+payload.WebhookPath)
+	webhookID, err := registerWebhook(payload.EnvName, payload.AppURL+payload.WebhookPath)
+	if err != nil {
+		log.Errorf("Unable to register webhook.\n %s", err)
+	}
+	log.Infof("subscribed to webhook: %s", webhookID)
 }
