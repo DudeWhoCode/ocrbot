@@ -79,6 +79,7 @@ func registerWebhook(envName, webhookPath string) (string, error) {
 	return webhookID, nil
 }
 
+// subscribeWebhook subscribes this endpoint to events
 func subscribeWebhook(envName string) (string, error) {
 	client := createClient()
 	path := fmt.Sprintf(subscriptionEndpoint, envName)
