@@ -101,7 +101,7 @@ func crcCheck(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "No crc_token given")
 	}
 
-	h := hmac.New(sha256.New, []byte(APISECRET))
+	h := hmac.New(sha256.New, []byte(apiSecret))
 	h.Write([]byte(token[0]))
 	encoded := base64.StdEncoding.EncodeToString(h.Sum(nil))
 

@@ -13,16 +13,11 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
-const (
-	WEBHOOKENV = "dev4"
-	APPURL     = "https://ocrbot.dudewho.codes"
-)
-
 var (
-	APIKEY               = os.Getenv("APIKEY")
-	APISECRET            = os.Getenv("APISECRET")
-	ACCESSTOKEN          = os.Getenv("ACCESSTOKEN")
-	ACCESSSECRET         = os.Getenv("ACCESSSECRET")
+	apiKey               = os.Getenv("APIKEY")
+	apiSecret            = os.Getenv("APISECRET")
+	accessToken          = os.Getenv("ACCESSTOKEN")
+	accessSecret         = os.Getenv("ACCESSSECRET")
 	webhookEndpoint      = "https://api.twitter.com/1.1/account_activity/all/%s/webhooks.json"
 	subscriptionEndpoint = "https://api.twitter.com/1.1/account_activity/all/%s/subscriptions.json"
 )
@@ -30,9 +25,9 @@ var (
 var api *anaconda.TwitterApi
 
 func init() {
-	anaconda.SetConsumerKey(APIKEY)
-	anaconda.SetConsumerSecret(APISECRET)
-	api = anaconda.NewTwitterApi(ACCESSTOKEN, ACCESSSECRET)
+	anaconda.SetConsumerKey(apiKey)
+	anaconda.SetConsumerSecret(apiSecret)
+	api = anaconda.NewTwitterApi(accessToken, accessSecret)
 }
 
 func postTweet(tweet string) {
@@ -41,8 +36,8 @@ func postTweet(tweet string) {
 }
 
 func createClient() *http.Client {
-	config := oauth1.NewConfig(APIKEY, APISECRET)
-	token := oauth1.NewToken(ACCESSTOKEN, ACCESSSECRET)
+	config := oauth1.NewConfig(apiKey, apiSecret)
+	token := oauth1.NewToken(accessToken, accessSecret)
 	return config.Client(oauth1.NoContext, token)
 }
 
