@@ -27,6 +27,7 @@ func read(path string) (string, error) {
 	return text, nil
 }
 
+// downaloadImage downloads the image from url to local file
 func downloadImage(url, path string) error {
 	response, err := http.Get(url)
 	if err != nil {
