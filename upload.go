@@ -5,12 +5,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
 const (
-	APIDEVKEY = "d36573a9390e1f80571857b20937dc12"
-	USERKEY   = "a77afd7e1aab1e408072ee6dd9abc50e"
+	APIDEVKEY = os.Getenv("APIDEVKEY")
+	USERKEY   = os.Getenv("USERKEY")
 	PASTEURL  = "https://pastebin.com/api/api_post.php"
 )
 
