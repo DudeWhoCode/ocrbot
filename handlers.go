@@ -6,11 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -33,54 +31,64 @@ func startServer() {
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Into webhook handler")
 	body, _ := ioutil.ReadAll(r.Body)
 	var load Webhook
 	err := json.Unmarshal(body, &load)
 	if err != nil {
-		fmt.Println("unmarshal json: ", err)
+		log.Error(err)
+		return
 	}
 
 	//Check if it was a tweet_create_event and tweet was in the payload and it was not tweeted by the bot
 	if len(load.TweetCreateEvent) < 1 || load.UserId == load.TweetCreateEvent[0].User.IdStr {
+		log.Warn("Tweet create event is not a mention")
 		return
 	}
-	//Send Hello world as a reply to the tweet, replies need to begin with the handles
-	//of accounts they are replying to
-	fmt.Printf("received tweet info: %+v\n", load.TweetCreateEvent[0])
+	replyHandle := load.TweetCreateEvent[0].User.Handle
+	log.Infof("Got mentioned by %s", replyHandle)
+
 	parentID := load.TweetCreateEvent[0].ParentID
 	if parentID == 0 {
+		log.Error("Unable to find parent tweet ID")
 		return
 	}
 	v := url.Values{}
 	parentTweet, err := api.GetTweet(parentID, v)
 	if err != nil {
-		log.Fatal(err)
-	}
-	if len(parentTweet.Entities.Media) == 0 {
+		log.Error("Unable to get parent tweet")
 		return
 	}
+	if len(parentTweet.Entities.Media) == 0 {
+		log.Error("Parent tweet has no media")
+		return
+	}
+
+	// TODO: handle multiple media files
 	media := parentTweet.Entities.Media[0]
 	if media.Type != "photo" {
 		return
 	}
+
+	// TODO: use dynamic file names for saving images
 	err = downloadImage(media.Media_url_https, "pic.jpg")
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("Unable to download image. \n %s", err)
+		return
 	}
 
 	text, err := read("pic.jpg")
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Unable to read image. \n %s", err)
 		return
 	}
 
+	// TODO: If pastebin API limit is reached, retry here. Or add queue for creating pastes
 	pasteURL, err := createPaste(text)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Unable to create paste. \n %s", err)
+		return
 	}
 
-	replyHandle := load.TweetCreateEvent[0].User.Handle
 	err = replyTweet("@"+replyHandle+" Here is the text: "+pasteURL, load.TweetCreateEvent[0].IdStr)
 	if err != nil {
 		log.Errorf("Error while replying to %s \n %s", replyHandle, err) // Log tweet URL instead of just handle
