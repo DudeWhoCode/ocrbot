@@ -82,12 +82,13 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 	}
-	err = replyTweet("@"+load.TweetCreateEvent[0].User.Handle+" Here is the text: "+pasteURL, load.TweetCreateEvent[0].IdStr)
+
+	replyHandle := load.TweetCreateEvent[0].User.Handle
+	err = replyTweet("@"+replyHandle+" Here is the text: "+pasteURL, load.TweetCreateEvent[0].IdStr)
 	if err != nil {
-		fmt.Println("An error occured:")
-		fmt.Println(err.Error())
+		log.Errorf("Error while replying to %s \n %s", replyHandle, err) // Log tweet URL instead of just handle
 	} else {
-		fmt.Println("Tweet sent successfully")
+		log.Infof("Reply sent successfully to %s", replyHandle)
 	}
 
 }
