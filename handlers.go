@@ -72,7 +72,12 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	text := read("pic.jpg")
+	text, err := read("pic.jpg")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	pasteURL, err := createPaste(text)
 	if err != nil {
 		log.Error(err)
