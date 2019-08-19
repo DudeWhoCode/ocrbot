@@ -1,6 +1,10 @@
 package main
 
 import (
+	"io"
+	"net/http"
+	"os"
+
 	"github.com/otiai10/gosseract"
 	"github.com/pkg/errors"
 )
@@ -21,4 +25,25 @@ func read(path string) (string, error) {
 	}
 
 	return text, nil
+}
+
+func downloadImage(url, path string) error {
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	file, err := os.Create(path)
+	if err != nil {
+		return errors.Wrap(err, "create image path failed")
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, response.Body)
+	if err != nil {
+		return errors.Wrap(err, "copy image to file failed")
+	}
+
+	return nil
 }

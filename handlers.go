@@ -121,24 +121,3 @@ func registerNewWebhook(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&payload)
 	registerWebhook(payload.EnvName, payload.AppURL+payload.WebhookPath)
 }
-
-func downloadImage(url, path string) error {
-	response, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	file, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return nil
-}
