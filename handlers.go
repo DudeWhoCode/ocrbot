@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )
@@ -32,7 +33,6 @@ func startServer() {
 	server.Addr = "0.0.0.0:8000"
 	fmt.Println("Starting server...")
 	server.ListenAndServe()
-	// registerWebhook()
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,9 +71,13 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	text := read("pic.jpg")
-	textURL := createPaste(text)
-	_, err = SendTweet("@"+load.TweetCreateEvent[0].User.Handle+" Here is the text: "+textURL, load.TweetCreateEvent[0].IdStr)
+	pasteURL, err := createPaste(text)
+	if err != nil {
+		log.Error(err)
+	}
+	_, err = SendTweet("@"+load.TweetCreateEvent[0].User.Handle+" Here is the text: "+pasteURL, load.TweetCreateEvent[0].IdStr)
 	if err != nil {
 		fmt.Println("An error occured:")
 		fmt.Println(err.Error())
