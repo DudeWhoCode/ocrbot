@@ -48,13 +48,12 @@ func createClient() *http.Client {
 }
 
 func registerWebhook(envName, webhookPath string) {
-	fmt.Println("Into register webhook")
 	httpClient := createClient()
-
 	path := fmt.Sprintf(webhookEndpoint, envName)
 	values := url.Values{}
 	values.Set("url", webhookPath)
 
+	// TODO: Check whether you can achieve the same using anaconda
 	resp, err := httpClient.PostForm(path, values)
 	if err != nil {
 		panic(err)
@@ -70,26 +69,31 @@ func registerWebhook(envName, webhookPath string) {
 	if err := json.Unmarshal([]byte(body), &data); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("registerWebHook data: ", data)
-	log.Println("Webhook id of " + data["id"].(string) + " has been registered")
-	subscribeWebhook(envName)
+	log.Infof("Registered Webhook: %s", data)
+	webhookID, err := subscribeWebhook(envName)
+	if err != nil {
+		log.Errorf("Unable to subscribe to webhook.\n %s", err)
+	}
+	log.Infof("subscribed to webhook: %s", webhookID)
 }
 
-func subscribeWebhook(envName string) {
-	fmt.Println("Into subscribe webhook")
+func subscribeWebhook(envName string) (string, error) {
 	client := createClient()
 	path := fmt.Sprintf(subscriptionEndpoint, envName)
+
+	// TODO: Check whether you can achieve the same using anaconda
 	resp, err := client.PostForm(path, nil)
 	if err != nil {
-		panic(err)
+		return "", errors.Wrap(err, "webhook post call failed")
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != 204 {
+		return "", errors.New("204 status code not received")
+	}
+
+	webhookID, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return "", errors.Wrap(err, "webhook read failed")
 	}
-	if resp.StatusCode == 204 {
-		fmt.Println("subscribed to WH: ", string(body))
-	} else {
-		fmt.Println("Unable to subscribe to WH: ", string(body))
-	}
+
+	return string(webhookID), nil
 }
