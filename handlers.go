@@ -12,13 +12,10 @@ import (
 	"net/url"
 	"os"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/gorilla/mux"
 )
 
 func startServer() {
-	fmt.Println("Into start server")
 	m := mux.NewRouter()
 	m.HandleFunc("/webhook/twitter", crcCheck).Methods("GET")
 	m.HandleFunc("/webhookdev/twitter", crcCheck).Methods("GET") // Dev environment
@@ -31,7 +28,7 @@ func startServer() {
 		Handler: m,
 	}
 	server.Addr = "0.0.0.0:8000"
-	fmt.Println("Starting server...")
+	log.Info("Starting server...")
 	server.ListenAndServe()
 }
 
