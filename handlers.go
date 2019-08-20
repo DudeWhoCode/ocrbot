@@ -44,6 +44,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		log.Warn("Tweet create event is not a mention")
 		return
 	}
+	log.Infof("WH payload: %v", payload)
 	replyHandle := payload.TweetCreateEvent[0].User.Handle
 	log.Infof("Got mentioned by %s", replyHandle)
 
