@@ -9,9 +9,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
+
+var re = regexp.MustCompile(`(?:^|[^@#/])\b(\w+)`)
 
 func startServer() {
 	m := mux.NewRouter()
@@ -45,6 +49,11 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Infof("WH payload: %+v", payload)
+	txt := payload.TweetCreateEvent[0].Text
+	if !isCommand(txt) {
+		log.Error("Not a valid command")
+	}
+
 	replyHandle := payload.TweetCreateEvent[0].User.Handle
 	log.Infof("Got mentioned by %s", replyHandle)
 
@@ -137,4 +146,13 @@ func registerNewWebhook(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Unable to register webhook.\n %s", err)
 	}
 	log.Infof("subscribed to webhook: %s", webhookID)
+}
+
+func isCommand(s string) bool {
+	cmds := re.FindAllString(s, -1)
+	cmd := strings.TrimSpace(cmds[0])
+	if cmd != "extract" {
+		return false
+	}
+	return true
 }
