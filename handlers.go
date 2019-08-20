@@ -52,6 +52,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	txt := payload.TweetCreateEvent[0].Text
 	if !isCommand(txt) {
 		log.Error("Not a valid command")
+		return
 	}
 
 	replyHandle := payload.TweetCreateEvent[0].User.Handle
