@@ -7,15 +7,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 var re = regexp.MustCompile(`(?:^|[^@#/])\b(\w+)`)
+var replies = []string{
+	"Howdy 👋\nHere is the transcribed content: ",
+	"Hey!\nThere you go: ",
+	"Hola 🤓\nHere it is: ",
+	"Done 😊",
+	"Phew, I guess I got it right 🙈",
+	"Yee-haw! 🤠\nText coming through: ",
+}
 
 func startServer() {
 	m := mux.NewRouter()
@@ -100,7 +110,8 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = replyTweet("@"+replyHandle+" Here is the text: "+pasteURL, payload.TweetCreateEvent[0].IdStr)
+	replyText := pickReply()
+	err = replyTweet("@"+replyHandle+replyText+"\n"+pasteURL, payload.TweetCreateEvent[0].IdStr)
 	if err != nil {
 		log.Errorf("Error while replying to %s \n %s", replyHandle, err) // Log tweet URL instead of just handle
 	} else {
@@ -156,4 +167,10 @@ func isCommand(s string) bool {
 		return false
 	}
 	return true
+}
+
+func pickReply() string {
+	rand.Seed(time.Now().UnixNano())
+	i := rand.Intn(len(replies))
+	return replies[i]
 }
